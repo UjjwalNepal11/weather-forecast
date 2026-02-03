@@ -306,7 +306,7 @@ function App() {
     window.history.replaceState(
       { location: "", history: [], currentIndex: -1 },
       "",
-      "/",
+      import.meta.env.BASE_URL,
     );
   };
   const title = weather
@@ -333,15 +333,16 @@ function App() {
         className={`min-h-screen relative ${getBackgroundClass()} flex flex-col p-2 sm:p-4`}
       >
         <div className="flex-grow flex flex-col items-center justify-center">
-          <div
-            className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center space-x-2 cursor-pointer"
+          <button
+            className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center space-x-2 cursor-pointer bg-transparent border-none p-0"
             onClick={handleHome}
+            aria-label="Go to home"
           >
             <img src={favicon} alt="Weatherly Logo" className="w-6 h-6" />
             <span className={`text-lg font-semibold ${getTitleClass()}`}>
               Weatherly
             </span>
-          </div>
+          </button>
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
             <button
               onClick={() => setIsModalOpen(true)}
