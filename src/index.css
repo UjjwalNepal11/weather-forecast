@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.bg-sunny {
+  background-image: url("/images/sunny.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.bg-cloudy {
+  background-image: url("/images/cloudy.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.bg-rainy {
+  background-image: url("/images/rainy.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.bg-thunderstorm {
+  background-image: url("/images/thunderstorm.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.bg-stormy {
+  background-image: url("/images/stormy.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.bg-snowy {
+  background-image: url("/images/snowy.jpg");
+  background-size: cover;
+  background-position: center;
+}

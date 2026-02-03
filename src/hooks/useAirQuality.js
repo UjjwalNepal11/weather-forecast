@@ -1,0 +1,103 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { API_KEY, BASE_URL } from "../utils/constants";
+import { retryRequest, getErrorMessage } from "../utils/retry";
+const CACHE_DURATION = 10 * 60 * 1000; 
+const useAirQuality = (location) => {
+  const [airQuality, setAirQuality] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const getCacheKey = (location) => {
+    if (typeof location === "string") {
+      return `airQuality_${location}`;
+    } else if (location && location.lat && location.lon) {
+      return `airQuality_${location.lat}_${location.lon}`;
+    }
+    return null;
+  };
+  const getCachedData = (key) => {
+    try {
+      const cached = localStorage.getItem(key);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const now = Date.now();
+        if (now - parsed.timestamp < CACHE_DURATION) {
+          return parsed.data;
+        } else {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch (err) {
+      console.error("Error reading from cache:", err);
+    }
+    return null;
+  };
+  const setCachedData = (key, data) => {
+    try {
+      const cacheEntry = {
+        data,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(key, JSON.stringify(cacheEntry));
+    } catch (err) {
+      console.error("Error writing to cache:", err);
+    }
+  };
+  useEffect(() => {
+    if (!location) {
+      setAirQuality(null);
+      setError("");
+      return;
+    }
+    if (!API_KEY) {
+      setError("API key not configured");
+      return;
+    }
+    const cacheKey = getCacheKey(location);
+    if (!cacheKey) {
+      setError("Invalid location format");
+      return;
+    }
+    const cachedData = getCachedData(cacheKey);
+    if (cachedData) {
+      setAirQuality(cachedData);
+    }
+    const fetchAirQuality = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        let params = {
+          appid: API_KEY,
+        };
+        if (typeof location === "string") {
+          const geoResponse = await retryRequest(() =>
+            axios.get(`${BASE_URL}/weather`, {
+              params: { q: location, appid: API_KEY },
+            }),
+          );
+          const { lat, lon } = geoResponse.data.coord;
+          params.lat = lat;
+          params.lon = lon;
+        } else if (location.lat && location.lon) {
+          params.lat = location.lat;
+          params.lon = location.lon;
+        } else {
+          throw new Error("Invalid location format");
+        }
+        const response = await retryRequest(() =>
+          axios.get(`${BASE_URL}/air_pollution`, { params }),
+        );
+        const newAirQuality = response.data;
+        setAirQuality(newAirQuality);
+        setCachedData(cacheKey, newAirQuality);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAirQuality();
+  }, [location]);
+  return { airQuality, loading, error };
+};
+export default useAirQuality;
