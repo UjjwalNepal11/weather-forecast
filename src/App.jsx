@@ -71,7 +71,7 @@ function App() {
                 currentIndex: newIndex,
               },
               "",
-              `?city=${encodeURIComponent(formattedCity)}`,
+              `${import.meta.env.BASE_URL}?city=${encodeURIComponent(formattedCity)}`,
             );
             setLocationError("");
           } else {
@@ -110,7 +110,7 @@ function App() {
         window.history.replaceState(
           { location: lastLocation, history: [lastLocation], currentIndex: 0 },
           "",
-          `?city=${encodeURIComponent(initialCity)}`,
+          `${import.meta.env.BASE_URL}?city=${encodeURIComponent(initialCity)}`,
         );
       } else {
         setLocation(initialCity);
@@ -119,7 +119,7 @@ function App() {
         window.history.replaceState(
           { location: initialCity, history: [initialCity], currentIndex: 0 },
           "",
-          `?city=${encodeURIComponent(initialCity)}`,
+          `${import.meta.env.BASE_URL}?city=${encodeURIComponent(initialCity)}`,
         );
       }
     }
@@ -151,7 +151,7 @@ function App() {
         window.history.replaceState(
           { location: "", history: [], currentIndex: -1 },
           "",
-          "/",
+          import.meta.env.BASE_URL,
         );
       }
     };
@@ -293,7 +293,7 @@ function App() {
     window.history.pushState(
       { location: searchedCity, history: newHistory, currentIndex: newIndex },
       "",
-      `?city=${encodeURIComponent(searchedCity)}`,
+      `${import.meta.env.BASE_URL}?city=${encodeURIComponent(searchedCity)}`,
     );
     if (!recentCities.includes(searchedCity)) {
       setRecentCities((prev) => [searchedCity, ...prev.slice(0, 4)]);
