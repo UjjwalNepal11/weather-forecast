@@ -109,8 +109,8 @@ const WeatherCard = ({
     if (degrees === undefined || degrees === null) {
       return (
         <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-2">
-            <span className="text-gray-500 text-xs">N/A</span>
+          <div className="w-20 h-20 sm:w-16 sm:h-16 bg-gray-200 rounded-full flex items-center justify-center mb-2">
+            <span className="text-gray-500 text-sm">N/A</span>
           </div>
           <p className="text-sm text-gray-600">Wind Direction</p>
           <p className="font-semibold">
@@ -123,7 +123,7 @@ const WeatherCard = ({
     const rotation = degrees;
     return (
       <div className="flex flex-col items-center">
-        <div className="relative w-16 h-16">
+        <div className="relative w-20 h-20 sm:w-16 sm:h-16">
           <svg className="w-full h-full" viewBox="0 0 64 64">
             <circle
               cx="32"
@@ -137,7 +137,7 @@ const WeatherCard = ({
               x="32"
               y="8"
               textAnchor="middle"
-              className="text-xs font-bold fill-gray-600"
+              className="text-sm font-bold fill-gray-600"
             >
               N
             </text>
@@ -145,7 +145,7 @@ const WeatherCard = ({
               x="56"
               y="34"
               textAnchor="middle"
-              className="text-xs font-bold fill-gray-600"
+              className="text-sm font-bold fill-gray-600"
             >
               E
             </text>
@@ -153,7 +153,7 @@ const WeatherCard = ({
               x="32"
               y="60"
               textAnchor="middle"
-              className="text-xs font-bold fill-gray-600"
+              className="text-sm font-bold fill-gray-600"
             >
               S
             </text>
@@ -161,7 +161,7 @@ const WeatherCard = ({
               x="8"
               y="34"
               textAnchor="middle"
-              className="text-xs font-bold fill-gray-600"
+              className="text-sm font-bold fill-gray-600"
             >
               W
             </text>
@@ -196,7 +196,7 @@ const WeatherCard = ({
   };
   return (
     <motion.div
-      className="bg-gray-100 rounded-lg p-6 mb-6"
+      className="bg-gray-100 rounded-lg p-6 mb-6 relative"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -392,7 +392,7 @@ const WeatherCard = ({
       </div>
       {showCompassPopup && (
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -402,7 +402,7 @@ const WeatherCard = ({
             role="dialog"
             aria-labelledby="wind-compass-title"
             aria-modal="true"
-            className="bg-white rounded-lg p-6 max-w-sm w-full mx-4"
+            className="bg-white rounded-lg p-4 sm:p-6 max-w-xs sm:max-w-sm w-full mx-4"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
@@ -415,7 +415,7 @@ const WeatherCard = ({
               <button
                 onClick={() => setShowCompassPopup(false)}
                 aria-label="Close wind compass popup"
-                className="text-gray-500 hover:text-gray-700"
+                className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <svg
                   className="w-6 h-6"
