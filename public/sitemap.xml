@@ -1,9 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="https://www.w3.org/1999/xhtml">
   <url>
     <loc>https://ujjwalnepal11.github.io/weather-forecast/</loc>
-    <lastmod>2026-02-04</lastmod> 
-    <changefreq>daily</changefreq> 
-    <priority>1.0</priority> 
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ujjwalnepal11.github.io/weather-forecast/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ujjwalnepal11.github.io/weather-forecast/"/>
+  </url>
+  <url>
+    <loc>https://ujjwalnepal11.github.io/weather-forecast/?city=New York</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ujjwalnepal11.github.io/weather-forecast/?city=New York"/>
+  </url>
+  <url>
+    <loc>https://ujjwalnepal11.github.io/weather-forecast/?city=London</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ujjwalnepal11.github.io/weather-forecast/?city=London"/>
+  </url>
+  <url>
+    <loc>https://ujjwalnepal11.github.io/weather-forecast/?city=Tokyo</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ujjwalnepal11.github.io/weather-forecast/?city=Tokyo"/>
+  </url>
+  <url>
+    <loc>https://ujjwalnepal11.github.io/weather-forecast/?city=Paris</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ujjwalnepal11.github.io/weather-forecast/?city=Paris"/>
+  </url>
+  <url>
+    <loc>https://ujjwalnepal11.github.io/weather-forecast/?city=Sydney</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ujjwalnepal11.github.io/weather-forecast/?city=Sydney"/>
   </url>
 </urlset>

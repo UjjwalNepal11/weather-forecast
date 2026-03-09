@@ -37,9 +37,9 @@ const WeatherMap = ({ location, weather }) => {
   };
   const center = getCoordinates();
   return (
-    <div className="bg-gray-100 rounded-lg p-6 mb-6">
+    <div className="bg-gray-100 rounded-lg p-4 sm:p-6 mb-6">
       <h3 className="text-xl font-bold mb-4">Weather Map</h3>
-      <div className="h-96 w-full rounded-lg overflow-hidden relative">
+      <div className="h-48 sm:h-64 md:h-80 lg:h-96 w-full rounded-lg overflow-hidden relative">
         <MapContainer
           center={[center.lat, center.lon]}
           zoom={10}

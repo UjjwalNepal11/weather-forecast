@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import countryCodeToFlag from "../utils/countryFlags";
 import WeatherIcon from "./WeatherIcon";
+
 const WeatherCard = ({
   weather,
   unit,
@@ -13,6 +14,14 @@ const WeatherCard = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCompassPopup, setShowCompassPopup] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  useEffect(() => {
+    if (weather && weather.dt) {
+      setLastUpdated(new Date(weather.dt * 1000));
+    }
+  }, [weather]);
+
   if (
     !weather ||
     !weather.main ||
@@ -32,6 +41,7 @@ const WeatherCard = ({
       </motion.div>
     );
   }
+
   const {
     name,
     main,
@@ -40,10 +50,13 @@ const WeatherCard = ({
     visibility,
     sys,
   } = weather;
+
   const tempUnit = unit === "metric" ? "°C" : "°F";
   const speedUnit = unit === "metric" ? "m/s" : "mph";
+
   let displayName = displayedCity || name;
   let countryCode = "";
+
   if (typeof displayedCity === "string") {
     countryCode = displayedCity.split(", ").pop();
   } else if (displayedCity && displayedCity.lat && displayedCity.lon) {
@@ -52,7 +65,9 @@ const WeatherCard = ({
       ? currentLocationCity.split(", ").pop()
       : "";
   }
+
   const flag = countryCode ? countryCodeToFlag(countryCode) : "";
+
   const formatTime = (timestamp) => {
     const adjustedTime = timestamp + (sys.timezone || 0);
     return new Date(adjustedTime * 1000).toLocaleTimeString([], {
@@ -60,29 +75,84 @@ const WeatherCard = ({
       minute: "2-digit",
     });
   };
+
+  const formatLastUpdated = (date) => {
+    if (!date) return "";
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const getAirQualityDescription = (aqi) => {
     switch (aqi) {
       case 1:
-        return "Good";
+        return {
+          text: "Good",
+          color: "bg-green-100 text-green-800",
+          icon: "✓",
+        };
       case 2:
-        return "Fair";
+        return {
+          text: "Fair",
+          color: "bg-yellow-100 text-yellow-800",
+          icon: "○",
+        };
       case 3:
-        return "Moderate";
+        return {
+          text: "Moderate",
+          color: "bg-orange-100 text-orange-800",
+          icon: "!",
+        };
       case 4:
-        return "Poor";
+        return { text: "Poor", color: "bg-red-100 text-red-800", icon: "!!" };
       case 5:
-        return "Very Poor";
+        return {
+          text: "Very Poor",
+          color: "bg-purple-100 text-purple-800",
+          icon: "!!!",
+        };
       default:
-        return "Unknown";
+        return {
+          text: "Unknown",
+          color: "bg-gray-100 text-gray-800",
+          icon: "?",
+        };
     }
   };
+
   const getUVIndexInfo = (uvi) => {
-    if (uvi <= 2) return { description: "Low", color: "text-green-600" };
-    if (uvi <= 5) return { description: "Moderate", color: "text-yellow-600" };
-    if (uvi <= 7) return { description: "High", color: "text-orange-600" };
-    if (uvi <= 10) return { description: "Very High", color: "text-red-600" };
-    return { description: "Extreme", color: "text-purple-600" };
+    if (uvi <= 2)
+      return {
+        description: "Low",
+        color: "text-green-600",
+        bg: "bg-green-100",
+      };
+    if (uvi <= 5)
+      return {
+        description: "Moderate",
+        color: "text-yellow-600",
+        bg: "bg-yellow-100",
+      };
+    if (uvi <= 7)
+      return {
+        description: "High",
+        color: "text-orange-600",
+        bg: "bg-orange-100",
+      };
+    if (uvi <= 10)
+      return {
+        description: "Very High",
+        color: "text-red-600",
+        bg: "bg-red-100",
+      };
+    return {
+      description: "Extreme",
+      color: "text-purple-600",
+      bg: "bg-purple-100",
+    };
   };
+
   const getCardinalDirection = (degrees) => {
     const directions = [
       "N",
@@ -105,6 +175,33 @@ const WeatherCard = ({
     const index = Math.round(degrees / 22.5) % 16;
     return directions[index];
   };
+
+  // Generate mock hourly data for demonstration (in production, use forecast.hourly)
+  const generateHourlyData = () => {
+    const hours = [];
+    const now = new Date();
+    for (let i = 0; i < 8; i++) {
+      const hour = new Date(now.getTime() + i * 3 * 60 * 60 * 1000);
+      hours.push({
+        time: hour.toLocaleTimeString([], { hour: "numeric", hour12: true }),
+        temp: Math.round(main.temp + (Math.random() - 0.5) * 6),
+        pop: Math.round(Math.random() * 60),
+        icon: weatherDetails[0].icon,
+      });
+    }
+    return hours;
+  };
+
+  const hourlyData = generateHourlyData();
+  const aqiInfo =
+    airQuality && airQuality.list && airQuality.list[0]
+      ? getAirQualityDescription(airQuality.list[0].main.aqi)
+      : null;
+  const uvInfo =
+    uvIndex && typeof uvIndex === "number" && !isNaN(uvIndex)
+      ? getUVIndexInfo(uvIndex)
+      : null;
+
   const WindCompass = ({ degrees, speed, speedUnit }) => {
     if (degrees === undefined || degrees === null) {
       return (
@@ -121,6 +218,7 @@ const WeatherCard = ({
     }
     const cardinal = getCardinalDirection(degrees);
     const rotation = degrees;
+
     return (
       <div className="flex flex-col items-center">
         <div className="relative w-20 h-20 sm:w-16 sm:h-16">
@@ -194,26 +292,39 @@ const WeatherCard = ({
       </div>
     );
   };
+
   return (
     <motion.div
-      className="bg-gray-100 rounded-lg p-6 mb-6 relative"
+      className="bg-white/20 backdrop-blur-lg rounded-2xl p-4 sm:p-6 mb-6 relative border border-white/30 shadow-xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
     >
-      <h2 className="text-2xl font-bold mb-4">
-        {flag && <span className={`mr-2 ${flag}`}></span>}
-        {displayName}
-      </h2>
+      {/* Header with city name and last updated */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center">
+          <h2 className="text-2xl font-bold text-gray-800 drop-shadow-sm">
+            {flag && <span className={`mr-2 ${flag}`}></span>}
+            {displayName}
+          </h2>
+        </div>
+        {lastUpdated && (
+          <span className="text-xs text-gray-600 bg-white/50 px-2 py-1 rounded-full">
+            Updated {formatLastUpdated(lastUpdated)}
+          </span>
+        )}
+      </div>
+
+      {/* Weather Alerts */}
       {alerts && alerts.length > 0 && (
         <div className="mb-4">
           {alerts.map((alert, index) => (
             <motion.div
               key={index}
-              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-2"
+              className="bg-red-100/90 backdrop-blur-sm border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-2 shadow-lg"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -252,147 +363,238 @@ const WeatherCard = ({
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between">
+
+      {/* Main weather display */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-4xl font-bold">
+          <p className="text-6xl font-bold text-gray-800 drop-shadow-sm">
             {Math.round(main.temp)}
+            <span className="text-3xl">{tempUnit}</span>
+          </p>
+          <p className="text-xl capitalize text-gray-700">
+            {weatherDetails[0].description}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            Feels like {Math.round(main.feels_like)}
             {tempUnit}
           </p>
-          <p className="text-lg capitalize">{weatherDetails[0].description}</p>
         </div>
         <WeatherIcon
           iconCode={weatherDetails[0].icon}
-          size={80}
+          size={100}
           description={weatherDetails[0].description}
         />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mt-4">
-        <div>
-          <p className="text-sm text-gray-600">Feels like</p>
-          <p className="font-semibold">
-            {Math.round(main.feels_like)}
-            {tempUnit}
+
+      {/* Hourly forecast */}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          Next 8 Hours
+        </h3>
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+          {hourlyData.map((hour, index) => (
+            <div
+              key={index}
+              className="flex-shrink-0 bg-gray-100/80 rounded-xl p-3 text-center min-w-[70px] border border-gray-200"
+            >
+              <p className="text-xs text-gray-600">{hour.time}</p>
+              <div className="my-1">
+                <WeatherIcon iconCode={hour.icon} size={32} description="" />
+              </div>
+              <p className="text-sm font-bold text-gray-800">
+                {hour.temp}
+                {tempUnit}
+              </p>
+              {hour.pop > 0 && (
+                <p className="text-xs text-blue-600">{hour.pop}%</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Weather metrics grid with color badges */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+        <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">
+            Humidity
+          </p>
+          <p className="text-lg font-bold text-gray-800">{main.humidity}%</p>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+            <div
+              className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(main.humidity, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">
+            Pressure
+          </p>
+          <p className="text-lg font-bold text-gray-800">
+            {main.pressure} <span className="text-xs font-normal">hPa</span>
           </p>
         </div>
-        <div>
-          <p className="text-sm text-gray-600">Humidity</p>
-          <p className="font-semibold">{main.humidity}%</p>
+
+        <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">
+            Visibility
+          </p>
+          <p className="text-lg font-bold text-gray-800">
+            {(visibility / 1000).toFixed(1)}{" "}
+            <span className="text-xs font-normal">km</span>
+          </p>
         </div>
-        <div>
-          <p className="text-sm text-gray-600">Pressure</p>
-          <p className="font-semibold">{main.pressure} hPa</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Visibility</p>
-          <p className="font-semibold">{(visibility / 1000).toFixed(1)} km</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Sunrise</p>
-          <p className="font-semibold">{formatTime(sys.sunrise)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Sunset</p>
-          <p className="font-semibold">{formatTime(sys.sunset)}</p>
-        </div>
-        {uvIndex && typeof uvIndex === "number" && !isNaN(uvIndex) && (
-          <div>
-            <p className="text-sm text-gray-600">UV Index</p>
-            <p className={`font-semibold ${getUVIndexInfo(uvIndex).color}`}>
-              {uvIndex} - {getUVIndexInfo(uvIndex).description}
-            </p>
-          </div>
-        )}
-        <div>
+
+        <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Wind</p>
+          <p className="text-lg font-bold text-gray-800">
+            {wind.speed} {speedUnit}
+          </p>
           <button
             onClick={() => setShowCompassPopup(true)}
-            aria-label="Open wind compass details"
-            className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-semibold text-sm"
+            className="text-xs text-blue-600 hover:text-blue-800 underline"
           >
-            Wind Compass
+            {getCardinalDirection(wind.deg)} →
           </button>
         </div>
-        {airQuality && airQuality.list && airQuality.list[0] && (
-          <div className="col-span-full">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              aria-expanded={isExpanded}
-              aria-label={`Air quality details, currently ${isExpanded ? "expanded" : "collapsed"}`}
-              className="w-full text-left p-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+
+        <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">
+            Sunrise
+          </p>
+          <p className="text-lg font-bold text-gray-800">
+            {formatTime(sys.sunrise)}
+          </p>
+          <span className="text-xs">🌅</span>
+        </div>
+
+        <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">
+            Sunset
+          </p>
+          <p className="text-lg font-bold text-gray-800">
+            {formatTime(sys.sunset)}
+          </p>
+          <span className="text-xs">🌇</span>
+        </div>
+
+        {uvInfo && (
+          <div className="bg-gray-100/80 rounded-xl p-3 border border-gray-200">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              UV Index
+            </p>
+            <p className={`text-lg font-bold ${uvInfo.color}`}>{uvIndex}</p>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full ${uvInfo.bg} ${uvInfo.color}`}
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-gray-600">Air Quality</p>
-                  <p className="font-semibold">
-                    {getAirQualityDescription(airQuality.list[0].main.aqi)}
-                  </p>
-                </div>
-                <svg
-                  className={`w-5 h-5 transform transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+              {uvInfo.description}
+            </span>
+          </div>
+        )}
+
+        {aqiInfo && (
+          <div
+            className={`bg-gray-100/80 rounded-xl p-3 border border-gray-200`}
+          >
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              Air Quality
+            </p>
+            <p
+              className={`text-lg font-bold ${aqiInfo.text === "Good" ? "text-green-600" : aqiInfo.text === "Fair" ? "text-yellow-600" : aqiInfo.text === "Moderate" ? "text-orange-600" : aqiInfo.text === "Poor" ? "text-red-600" : "text-purple-600"}`}
+            >
+              {aqiInfo.text}
+            </p>
+            <span className="text-xs opacity-80">{aqiInfo.icon}</span>
+          </div>
+        )}
+
+        <div className="col-span-full">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
+            aria-label={`Air quality details, currently ${isExpanded ? "expanded" : "collapsed"}`}
+            className="w-full text-left p-3 bg-gray-100/80 rounded-xl hover:bg-gray-200 transition-all border border-gray-200"
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">Air Quality</p>
+                <p className="font-semibold text-gray-800">
+                  {aqiInfo ? aqiInfo.text : "N/A"}
+                </p>
               </div>
-            </button>
-            {isExpanded && (
+              <svg
+                className={`w-5 h-5 text-gray-600 transform transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </button>
+          {isExpanded &&
+            airQuality &&
+            airQuality.list &&
+            airQuality.list[0] && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
-                className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-4"
+                className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-gray-100/50 rounded-xl"
               >
-                <div>
-                  <p className="text-sm text-gray-600">PM2.5</p>
-                  <p className="font-semibold">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs text-gray-500">PM2.5</p>
+                  <p className="font-semibold text-gray-800">
                     {airQuality.list[0].components.pm2_5} µg/m³
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">PM10</p>
-                  <p className="font-semibold">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs text-gray-500">PM10</p>
+                  <p className="font-semibold text-gray-800">
                     {airQuality.list[0].components.pm10} µg/m³
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">CO</p>
-                  <p className="font-semibold">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs text-gray-500">CO</p>
+                  <p className="font-semibold text-gray-800">
                     {airQuality.list[0].components.co} µg/m³
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">NO₂</p>
-                  <p className="font-semibold">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs text-gray-500">NO₂</p>
+                  <p className="font-semibold text-gray-800">
                     {airQuality.list[0].components.no2} µg/m³
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">O₃</p>
-                  <p className="font-semibold">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs text-gray-500">O₃</p>
+                  <p className="font-semibold text-gray-800">
                     {airQuality.list[0].components.o3} µg/m³
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">SO₂</p>
-                  <p className="font-semibold">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs text-gray-500">SO₂</p>
+                  <p className="font-semibold text-gray-800">
                     {airQuality.list[0].components.so2} µg/m³
                   </p>
                 </div>
               </motion.div>
             )}
-          </div>
-        )}
+        </div>
       </div>
+
+      {/* Wind Compass Popup */}
       {showCompassPopup && (
         <motion.div
-          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg"
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -402,14 +604,17 @@ const WeatherCard = ({
             role="dialog"
             aria-labelledby="wind-compass-title"
             aria-modal="true"
-            className="bg-white rounded-lg p-4 sm:p-6 max-w-xs sm:max-w-sm w-full mx-4"
+            className="bg-white rounded-2xl p-4 sm:p-6 max-w-xs sm:max-w-sm w-full mx-4 shadow-2xl"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 id="wind-compass-title" className="text-lg font-semibold">
+              <h3
+                id="wind-compass-title"
+                className="text-lg font-semibold text-gray-800"
+              >
                 Wind Compass
               </h3>
               <button
@@ -443,4 +648,5 @@ const WeatherCard = ({
     </motion.div>
   );
 };
+
 export default WeatherCard;

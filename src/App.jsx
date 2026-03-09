@@ -197,10 +197,13 @@ function App() {
   } = useAlerts(location);
   useEffect(() => {
     if (weather && displayedCity) {
+      const baseUrl = "https://ujjwalnepal11.github.io/weather-forecast";
       const jsonLd = {
         "@context": "https://schema.org",
         "@type": "WeatherObservation",
+        "@id": `${baseUrl}/#weather-observation`,
         name: `Current weather in ${displayedCity}`,
+        url: `${baseUrl}/?city=${encodeURIComponent(displayedCity)}`,
         observationDate: new Date(weather.dt * 1000).toISOString(),
         temperature: {
           "@type": "QuantitativeValue",
@@ -223,6 +226,15 @@ function App() {
           value: weather.visibility / 1000,
           unitText: "km",
         },
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: displayedCity,
+        },
+        provider: {
+          "@type": "Organization",
+          name: "Weatherly",
+          url: baseUrl,
+        },
       };
       const script = document.createElement("script");
       script.type = "application/ld+json";
@@ -241,6 +253,46 @@ function App() {
       }
     };
   }, [weather, unit, displayedCity]);
+
+  // Breadcrumb structured data
+  useEffect(() => {
+    if (displayedCity) {
+      const baseUrl = "https://ujjwalnepal11.github.io/weather-forecast";
+      const breadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: baseUrl,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: displayedCity,
+            item: `${baseUrl}/?city=${encodeURIComponent(displayedCity)}`,
+          },
+        ],
+      };
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.textContent = JSON.stringify(breadcrumbLd);
+      script.id = "breadcrumb-json-ld";
+      const existingScript = document.getElementById("breadcrumb-json-ld");
+      if (existingScript) {
+        existingScript.remove();
+      }
+      document.head.appendChild(script);
+    }
+    return () => {
+      const existingScript = document.getElementById("breadcrumb-json-ld");
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, [displayedCity]);
   const displayCity =
     typeof location === "string" ? location : currentLocationCity;
   useEffect(() => {
@@ -330,9 +382,14 @@ function App() {
         <meta name="twitter:image" content="/favicon.png" />
       </Helmet>
       <div
-        className={`min-h-screen relative ${getBackgroundClass()} flex flex-col p-2 sm:p-4`}
+        className={`min-h-screen relative ${getBackgroundClass()} flex flex-col p-3 sm:p-4 lg:p-6`}
       >
-        <div className="flex-grow flex flex-col items-center justify-center">
+        <motion.div
+          className="flex-grow flex flex-col items-center justify-center max-w-5xl mx-auto w-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <button
             className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center space-x-2 cursor-pointer bg-transparent border-none p-0"
             onClick={handleHome}
@@ -482,34 +539,138 @@ function App() {
             </AnimatePresence>
           </div>
           {isModalOpen && (
-            <div
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.2 }}
               role="dialog"
               aria-labelledby="about-modal-title"
               aria-modal="true"
-              className="absolute top-12 right-4 bg-white rounded-lg p-4 shadow-lg z-50 max-w-xs"
+              className="absolute top-16 sm:top-20 right-2 sm:right-4 left-2 sm:left-auto bg-white/95 backdrop-blur-lg rounded-2xl p-6 shadow-2xl z-50 max-w-sm w-full sm:w-auto border border-white/20"
             >
-              <h2
-                id="about-modal-title"
-                className="text-lg font-bold mb-2 text-gray-800"
-              >
-                About
-              </h2>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2
+                    id="about-modal-title"
+                    className="text-xl font-bold text-gray-800"
+                  >
+                    About Weatherly
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">Version 1.0.0</p>
+                </div>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  aria-label="Close about modal"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
               <p className="mb-4 text-sm text-gray-600">
                 A modern weather app providing real-time forecasts, air quality
                 insights, and alerts through a clean, responsive interface.
               </p>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                aria-label="Close about modal"
-                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-              >
-                Close
-              </button>
-            </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Real-time Weather
+                    </p>
+                    <p className="text-xs text-gray-500">Accurate forecasts</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Air Quality Index
+                    </p>
+                    <p className="text-xs text-gray-500">Health insights</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-yellow-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Weather Alerts
+                    </p>
+                    <p className="text-xs text-gray-500">Stay informed</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-center text-gray-400">
+                  Built with React & Tailwind CSS
+                </p>
+              </div>
+            </motion.div>
           )}
-        </div>
-        <footer className="text-center text-gray-600 mt-4">
-          Built by Bhagwat Nepal | Powered by OpenWeatherMap
+        </motion.div>
+        <footer className="text-center text-gray-600 mt-6 text-sm">
+          Built by Bhagwat Nepal | Powered by OpenWeatherMap | ©{" "}
+          {new Date().getFullYear()}
         </footer>
       </div>
     </>
