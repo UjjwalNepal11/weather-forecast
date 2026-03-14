@@ -41,7 +41,7 @@ Real-time weather intelligence app providing comprehensive weather forecasts, ai
 
 ## Live Demo
 
-[Live demo] (https://ujjwalnepal11.github.io/weather-forecast/)
+[Live Demo](https://ujjwalnepal11.github.io/weather-forecast)
 
 ## API
 
